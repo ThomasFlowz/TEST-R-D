@@ -1,0 +1,57 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  claude-review:
+    name: Review with Claude
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          model: claude-opus-4-8
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          direct_prompt: |
+            Tu es un reviewer de code senior. Analyse les changements de cette pull request et poste un seul commentaire structuré.
+
+            Format obligatoire du commentaire :
+
+            ## Review Claude — [titre court de la PR]
+
+            ### Résumé
+            [2-3 phrases décrivant ce que fait cette PR]
+
+            ---
+
+            ### 🔴 Bloquant
+            [Problèmes critiques : bugs évidents, failles de sécurité, régressions, erreurs de logique. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+
+            ### 🟡 À corriger
+            [Problèmes non bloquants mais importants : mauvaise gestion d'erreur, performance, duplication de code, tests manquants. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+
+            ### 🟢 Suggestions
+            [Améliorations optionnelles : lisibilité, nommage, refactos mineures. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+
+            ---
+
+            > ⚠️ Ce commentaire est généré automatiquement. Il ne constitue pas une approbation de la PR.
+
+            Règles :
+            - Ne jamais approuver ni rejeter la PR
+            - Être concis et factuel, pas de blabla
+            - Référencer les fichiers et numéros de ligne concernés
+            - Si la PR est triviale (typo, doc), le dire clairement et raccourcir la review
