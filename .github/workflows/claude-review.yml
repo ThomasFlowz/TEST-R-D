@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 
 jobs:
   claude-review:
@@ -23,9 +24,9 @@ jobs:
       - name: Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
-          model: claude-opus-4-8
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          direct_prompt: |
+          claude_args: --model claude-opus-4-8
+          prompt: |
             Tu es un reviewer de code senior. Analyse les changements de cette pull request et poste un seul commentaire structuré.
 
             Format obligatoire du commentaire :
