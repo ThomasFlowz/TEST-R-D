@@ -25,34 +25,40 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: --model claude-opus-4-8
-          track_progress: true
-          use_sticky_comment: true
           prompt: |
-            Tu es un reviewer de code senior. Analyse le diff de cette pull request et produis une review structurée.
+            REPO: ${{ github.repository }}
+            NUMÉRO DE PR: ${{ github.event.pull_request.number }}
 
-            Format de ta réponse :
+            Tu es un reviewer de code senior. La branche de la PR est déjà checkout.
+            Récupère le diff avec `gh pr diff` et analyse les changements.
 
-            ## Review Claude — [titre court de la PR]
+            1. COMMENTAIRES INLINE — pour chaque problème lié à une ligne précise du diff,
+               poste un commentaire directement sur la ligne avec :
+               mcp__github_inline_comment__create_inline_comment (avec confirmed: true)
+               Préfixe chaque commentaire par sa sévérité : 🔴 Bloquant / 🟡 À corriger / 🟢 Suggestion.
 
-            ### Résumé
-            [2-3 phrases décrivant ce que fait cette PR]
+            2. SYNTHÈSE — ensuite, poste UN seul commentaire global avec `gh pr comment` :
 
-            ---
+               ## Review Claude — [titre court de la PR]
 
-            ### 🔴 Bloquant
-            [Problèmes critiques : bugs, failles de sécurité, régressions, erreurs de logique. Sinon : Aucun.]
+               ### Résumé
+               [2-3 phrases décrivant ce que fait cette PR]
 
-            ### 🟡 À corriger
-            [Problèmes importants non bloquants : gestion d'erreur, performance, duplication, tests manquants. Sinon : Aucun.]
+               ### Bilan
+               - 🔴 Bloquant : N
+               - 🟡 À corriger : N
+               - 🟢 Suggestion : N
 
-            ### 🟢 Suggestions
-            [Améliorations optionnelles : lisibilité, nommage, refactos mineures. Sinon : Aucun.]
+               (Le détail est dans les commentaires inline ci-dessus.)
 
-            ---
-
-            > ⚠️ Commentaire généré automatiquement. Ne constitue pas une approbation de la PR.
+               > ⚠️ Commentaire généré automatiquement. Ne constitue pas une approbation de la PR.
 
             Règles :
             - Ne jamais approuver ni rejeter la PR
-            - Concis et factuel, référencer fichiers et numéros de ligne
+            - Un commentaire inline ne peut porter QUE sur une ligne modifiée dans le diff ;
+              pour tout problème hors diff, mentionne-le dans la synthèse
+            - Concis et factuel
+
+          claude_args: |
+            --model claude-opus-4-8
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Grep,Glob"
