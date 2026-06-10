@@ -26,8 +26,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: --model claude-opus-4-8
+          use_sticky_comment: true
           prompt: |
-            Tu es un reviewer de code senior. Analyse les changements de cette pull request et poste un seul commentaire structuré.
+            Tu es un reviewer de code senior. Utilise l'outil gh pour poster un commentaire sur cette PR.
+
+            Étapes :
+            1. Récupère le diff de la PR avec : gh pr diff ${{ github.event.pull_request.number }}
+            2. Analyse les changements
+            3. Poste un commentaire sur la PR avec : gh pr comment ${{ github.event.pull_request.number }} --body "..."
 
             Format obligatoire du commentaire :
 
@@ -39,20 +45,19 @@ jobs:
             ---
 
             ### 🔴 Bloquant
-            [Problèmes critiques : bugs évidents, failles de sécurité, régressions, erreurs de logique. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+            [Problèmes critiques : bugs évidents, failles de sécurité, régressions, erreurs de logique. Sinon : "Aucun".]
 
             ### 🟡 À corriger
-            [Problèmes non bloquants mais importants : mauvaise gestion d'erreur, performance, duplication de code, tests manquants. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+            [Problèmes non bloquants mais importants : gestion d'erreur, performance, duplication, tests manquants. Sinon : "Aucun".]
 
             ### 🟢 Suggestions
-            [Améliorations optionnelles : lisibilité, nommage, refactos mineures. Lister uniquement s'il y en a, sinon écrire "Aucun".]
+            [Améliorations optionnelles : lisibilité, nommage, refactos mineures. Sinon : "Aucun".]
 
             ---
 
-            > ⚠️ Ce commentaire est généré automatiquement. Il ne constitue pas une approbation de la PR.
+            > ⚠️ Commentaire généré automatiquement. Ne constitue pas une approbation de la PR.
 
             Règles :
             - Ne jamais approuver ni rejeter la PR
-            - Être concis et factuel, pas de blabla
-            - Référencer les fichiers et numéros de ligne concernés
-            - Si la PR est triviale (typo, doc), le dire clairement et raccourcir la review
+            - Concis et factuel, référencer fichiers et numéros de ligne
+            - Si la PR est triviale (typo, doc), le dire et raccourcir
