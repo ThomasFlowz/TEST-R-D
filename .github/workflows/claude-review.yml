@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: |
+      github.event.comment.user.type != 'Bot' &&
       (
         (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
         github.event_name == 'pull_request_review_comment'
@@ -62,6 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: |
+      github.event.comment.user.type != 'Bot' &&
       (
         (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
         github.event_name == 'pull_request_review_comment'
