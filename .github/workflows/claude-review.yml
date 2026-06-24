@@ -50,6 +50,7 @@ jobs:
         uses: anthropics/claude-code-action@0cb4f3e5e764d2e00407d29b6bf0aa9df0976d88 # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          show_full_output: true
           plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
           plugins: "code-review@claude-code-plugins"
           prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}"
