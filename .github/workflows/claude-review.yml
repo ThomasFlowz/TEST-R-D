@@ -55,7 +55,7 @@ jobs:
           plugins: "code-review@claude-code-plugins"
           prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }} --comment"
           claude_args: |
-            --model claude-opus-4-8
+            --model claude-haiku-4-5-20251001
             --max-turns 25
 
   # Demande libre (question, fix, implémentation) — Sonnet, moins cher.
@@ -85,5 +85,5 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |
-            --model claude-sonnet-4-6
+            --model claude-haiku-4-5-20251001
             --max-turns 15
