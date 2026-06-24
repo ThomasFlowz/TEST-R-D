@@ -6,7 +6,7 @@ name: Claude Code
 #  suivi sur ClickUp.)
 #
 # Deux jobs aiguillés par le contenu du commentaire :
-#   - "@claude review / relis / relecture"  → job "review"  (Opus, plugin /code-review)
+#   - "@claude review / relis / relecture"  → job "review"  (Opus, single-pass /caveman-review)
 #   - "@claude <autre demande>"             → job "assist"  (Sonnet, mode interactif)
 on:
   issue_comment:
@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Review de PR à la demande — qualité max (Opus) + plugin de review.
+  # Review de PR à la demande
   review:
     name: Review (Opus)
     runs-on: ubuntu-latest
@@ -51,25 +51,12 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           show_full_output: true
-          # Review single-pass (un seul agent) avec le style /caveman-review.
-          # Pas le plugin code-review qui lance 5 agents en parallele et
-          # explose la rate limit haiku (10k ITPM -> 429).
           plugin_marketplaces: "https://github.com/JuliusBrussee/caveman.git"
           plugins: "caveman@caveman"
-          prompt: |
-            /caveman-review
-
-            Relis la pull request #${{ github.event.issue.number || github.event.pull_request.number }} du repo ${{ github.repository }}.
-            Un seul agent, ne lance PAS de sous-agents.
-
-            1. `gh pr diff ${{ github.event.issue.number || github.event.pull_request.number }}` pour voir les changements.
-            2. `gh pr view ${{ github.event.issue.number || github.event.pull_request.number }}` pour le contexte.
-            3. Identifie UNIQUEMENT les vrais bugs a haute confiance : erreurs de logique, crash runtime (TypeError/ReferenceError), erreurs de syntaxe, failles de securite. Ignore le style, les nitpicks, et tout ce qu'un linter/compilateur attraperait.
-            4. Poste UN commentaire sur la PR avec `gh pr comment ${{ github.event.issue.number || github.event.pull_request.number }} --body "..."`, au format caveman-review (une ligne par finding : `fichier:Lligne: <severite>: <probleme>. <fix>.`).
-
-            Si aucun bug : commente "### Code review\n\nNo issues found."
+          track_progress: true
+          prompt: /caveman-review
           claude_args: |
-            --model claude-haiku-4-5-20251001
+            --model claude-opus-4-6
             --max-turns 15
 
   # Demande libre (question, fix, implémentation) — Sonnet, moins cher.
@@ -99,5 +86,5 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |
-            --model claude-haiku-4-5-20251001
+            --model claude-sonnet-4-6
             --max-turns 15
